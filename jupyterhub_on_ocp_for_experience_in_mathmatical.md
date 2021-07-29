@@ -8,7 +8,7 @@
 
 下面以使用蒙特·卡罗方法<sup>8</sup>模拟计算圆周率的实验为例, 展示使用 OpenShift 容器平台上的 Jupyter 笔记本进行数学实验的过程. 无论是 iPad 上的 safari 浏览器, 还是 MatePAD 上的 chrome 浏览器, 都能够正常进行实验.  
 
-## 搭建基于 OpenShift 容器平台上的 Jupyter 笔记本的校内数学实验系统  
+## 搭建基于 OpenShift 容器平台上的 Jupyter 笔记本的校内的数学实验系统  
 请参考[红帽官网的安装手册](https://access.redhat.com/documentation/zh-cn/openshift_container_platform/4.2/html/installing/index)和众多的博客文章, 如, [OpenShift 4.2 离线安装补充记录](https://www.cnblogs.com/ericnie/p/11764124.html), 进行安装, 4台 PC 机即可搭建一个容器云环境.  
 
 Jupyter 笔记本的镜像, 请参考[jupyter-on-openshift 项目](https://github.com/jupyter-on-openshift/)进行构建, 并导入到本地的镜像仓库中, 如, registry.ocp4.example.com:5000/jupyteronopenshift/jupyterhub:latest 和 registry.ocp4.example.com:5000/jupyteronopenshift/s2i-minimal-notebook:latest.  
@@ -32,7 +32,7 @@ oc import-image jupyterhub --from=registry.ocp4.example.com:5000/jupyteronopensh
 oc import-image s2i-minimal-notebook --from=registry.ocp4.example.com:5000/jupyteronopenshift/s2i-minimal-notebook:latest --confirm=true
 ```
 
-在控制台页面通过模板创建 JupyterHub 应用.  
+### 在控制台页面通过模板创建 JupyterHub 应用  
 先选择 jupyternotebook 项目:  
 ![选择项目](./jupyterhub-screenshots/select_jupyternotebook_project.png)
 
@@ -48,7 +48,7 @@ oc import-image s2i-minimal-notebook --from=registry.ocp4.example.com:5000/jupyt
 输入必要的参数, 并点击 Create 按钮:  
 ![输入参数](./jupyterhub-screenshots/parameters_in_template_to_new_jupyterhub_app.png)
 
-至此这个校内的数学实验系统已经就绪.  
+至此这个校内的数学实验系统已经就绪, 无需访问互联网即可进行实验.  
 ![系统就绪](./jupyterhub-screenshots/application_system_for_math_experience.png)
 
 ## 进行实验  
@@ -61,7 +61,7 @@ oc import-image s2i-minimal-notebook --from=registry.ocp4.example.com:5000/jupyt
 在 Jupyter 笔记本的页面上创建一个 python 笔记本:  
 ![创建 python 笔记本](./jupyterhub-screenshots/new_python_notebook.png)
 
-按步骤运行实验代码:  
+### 按步骤运行实验代码  
 ```
 #1 引入依赖包
 # use matplotlib in notebook
@@ -126,7 +126,7 @@ HTML(anim.to_html5_video())
 能够看到动态的效果, 随着样本的不断计算, 圆周率的模拟值在不断变化:  
 ![![动态效果](./jupyterhub-screenshots/Pi_simulated_by_Monte_Carlo_method-axis.png)](./jupyterhub-screenshots/Pi_simulated_by_Monte_Carlo_method.gif)
 
-完成实验后停止实验环境.  
+### 完成实验后停止自己的实验环境  
 点击 Control Panel 进入 Jupyter 笔记本的控制台:  
 ![进入控制面板](./jupyterhub-screenshots/goto-control-panel.png)
 
