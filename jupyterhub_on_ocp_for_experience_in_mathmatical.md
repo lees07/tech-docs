@@ -13,6 +13,7 @@ OpenShift 容器平台<sup>5</sup>上的 Jupyter 笔记本<sup>6</sup>是一个�
 
 Jupyter 笔记本的镜像, 请参考[jupyter-on-openshift 项目](https://github.com/jupyter-on-openshift/)进行构建.  
 > 需要注意的是, 若要 Jupyter 笔记本在页面上实现动态的可视化效果, 则需要在构建镜像时安装 FFmpeg<sup>9</sup> 软件.  
+> 若安装的是高于 OpenShift v4.2 的版本, 直接使用 jupyter-on-openshift 项目提供的镜像, 则会遇到 [kubespawner 的 bug](https://github.com/jupyterhub/kubespawner/issues/354), 需要升级到对应的版本解决, 避免遇到[kubernetes-client 的一个未解决的 bug](https://github.com/kubernetes-client/python/issues/1333).  
 
 在控制台页面创建 JupyterHub 应用模板:  
 ![上传 JupyterHub 应用模板]()  
@@ -33,12 +34,66 @@ Jupyter 笔记本的镜像, 请参考[jupyter-on-openshift 项目](https://githu
 
 按步骤运行实验代码:  
 ```
-```
-![第一象限的圆](./jupyterhub-screenshots/Pi_simulated_by_Monte_Carlo_method-axis.png)
+#1 引入依赖包
+# use matplotlib in notebook
+%matplotlib inline
+# import dependencies
+import matplotlib.pyplot as plt
+import numpy as np
+from matplotlib import animation
+from IPython.display import HTML
 
+#2 定义一些参数
+# number of total frames
+num_frames = 100
+# frame interval 0.04s, aka. 25 frames per second.
+frame_interval = 40
+# number of samples process per frame
+num_sample_per_frame = 100
+
+#3 定义数据处理的动画的函数
+# i is number of frames, process num_sample_per_frame per frame
+def animate(i):
+    global inside_count
+    num_total_samples = num_sample_per_frame * (i + 1)
+    # samples process in the frame
+    xy_subset = xy[:, (num_total_samples - num_sample_per_frame):num_total_samples]
+    # collection caculate 
+    in_marker = np.hypot(*xy_subset) <= 1
+    in_xy = xy_subset[:, in_marker]
+    out_xy = xy_subset[:, ~in_marker]
+
+    inside_count += np.sum(in_marker)
+    pi = inside_count / num_total_samples * 4
+
+    ax.set_title('Monte-Carlo Method \n(N={:0>8d}'.format(num_total_samples)+', Pi Estimate: {:.6f}'.format(pi)+')')
+    ax.scatter(*in_xy, c='g', s=4)
+    ax.scatter(*out_xy, c='r', s=4)
+
+#4 画坐标和圆形
+fig = plt.figure(figsize=(5, 5), facecolor="white")
+ax = fig.add_subplot()
+# square
+ax.set_aspect('equal')
+ax.set_xlim(0, 1)
+ax.set_ylim(0, 1)
+# round share without fill
+ax.add_artist(plt.Circle((0, 0), 1, color='black', fill=False))
+line, = ax.plot([], [], 'ro')
+
+#5 生成数据样本, 生成动画. 可反复执行, 每次的评估值都有差异.
+# accumulator for points in round shape
+inside_count = 0
+# generate samples of (x,y)
+xy = np.random.default_rng().random([2, num_frames * num_sample_per_frame])
+
+# process animation.
+anim = animation.FuncAnimation(fig, animate, frames=num_frames, interval=frame_interval, repeat=False)
+
+# to generate animation video, wait for a minute...
+HTML(anim.to_html5_video())
 ```
-```
-![动态效果](./jupyterhub-screenshots/Pi_simulated_by_Monte_Carlo_method.mp4)
+[![动态效果](./jupyterhub-screenshots/Pi_simulated_by_Monte_Carlo_method-axis.png)](./jupyterhub-screenshots/Pi_simulated_by_Monte_Carlo_method.mp4)
 
 完成实验后停止实验环境(或者由老师在课后统一清理):  
 ![进入控制面板](./jupyterhub-screenshots/goto-control-panel.png)
@@ -46,12 +101,12 @@ Jupyter 笔记本的镜像, 请参考[jupyter-on-openshift 项目](https://githu
 
 
 ## 参考
-1. SciPy 是一个开源的 Python 算法库和数学工具包, https://zh.wikipedia.org/wiki/SciPy
-2. 《素质教育的新途径——开设数学实验与数学建模课》, 2000年, 何铭,杨振华,邱中华,孔告化,许立炜,胡国雷,唐加山, 电子高等教育学会2000年学术年会论文集
-3. 《数学实验与数学建模》, 2001年, 姜启源, 数学的实践与认识第31卷第5期
-4. 《中学数学实验初探》, 2002年, 许德刚, https://cdmd.cnki.com.cn/Article/CDMD-10718-2003083035.htm
-5. OpenShift 容器平台是企业级的云计算平台软件产品, https://www.redhat.com/zh/technologies/cloud-computing/openshift
+1. SciPy 是一个开源的 Python 算法库和数学工具包, https://zh.wikipedia.org/wiki/SciPy  
+2. 《素质教育的新途径——开设数学实验与数学建模课》, 2000年, 何铭,杨振华,邱中华,孔告化,许立炜,胡国雷,唐加山, 电子高等教育学会2000年学术年会论文集  
+3. 《数学实验与数学建模》, 2001年, 姜启源, 数学的实践与认识第31卷第5期  
+4. 《中学数学实验初探》, 2002年, 许德刚, https://cdmd.cnki.com.cn/Article/CDMD-10718-2003083035.htm  
+5. OpenShift 容器平台是企业级的云计算平台软件产品, https://www.redhat.com/zh/technologies/cloud-computing/openshift  
 6. Jupyter 笔记本是一个功能强大的基于Web的交互式计算环境, https://zh.wikipedia.org/wiki/Jupyter  
-7. 开源是开放源代码(Open Source)的简称, 是一种提供程序源代码的做法, https://zh.wikipedia.org/wiki/%E5%BC%80%E6%94%BE%E6%BA%90%E4%BB%A3%E7%A0%81
-8. 蒙特·卡罗方法(Monte Carlo method), 也称统计模拟方法, 是一种以概率统计理论为指导的一类非常重要的数值计算方法, https://baike.baidu.com/item/%E8%92%99%E7%89%B9%C2%B7%E5%8D%A1%E7%BD%97%E6%96%B9%E6%B3%95/8664362?fr=aladdin
-9. FFmpeg是数字多媒体处理工具, https://baike.baidu.com/item/ffmpeg/2665727
+7. 开源是开放源代码(Open Source)的简称, 是一种提供程序源代码的做法, https://zh.wikipedia.org/wiki/%E5%BC%80%E6%94%BE%E6%BA%90%E4%BB%A3%E7%A0%81  
+8. 蒙特·卡罗方法(Monte Carlo method), 也称统计模拟方法, 是一种以概率统计理论为指导的一类非常重要的数值计算方法, https://baike.baidu.com/item/%E8%92%99%E7%89%B9%C2%B7%E5%8D%A1%E7%BD%97%E6%96%B9%E6%B3%95/8664362?fr=aladdin  
+9. FFmpeg是数字多媒体处理工具, https://baike.baidu.com/item/ffmpeg/2665727  
