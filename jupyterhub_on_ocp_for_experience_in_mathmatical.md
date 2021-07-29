@@ -93,7 +93,7 @@ anim = animation.FuncAnimation(fig, animate, frames=num_frames, interval=frame_i
 # to generate animation video, wait for a minute...
 HTML(anim.to_html5_video())
 ```
-[![动态效果](./jupyterhub-screenshots/Pi_simulated_by_Monte_Carlo_method-axis.png)](./jupyterhub-screenshots/Pi_simulated_by_Monte_Carlo_method.mp4)
+[![动态效果](./jupyterhub-screenshots/Pi_simulated_by_Monte_Carlo_method-axis.png)](./jupyterhub-screenshots/Pi_simulated_by_Monte_Carlo_method.gif)
 
 完成实验后停止实验环境(或者由老师在课后统一清理):  
 ![进入控制面板](./jupyterhub-screenshots/goto-control-panel.png)
