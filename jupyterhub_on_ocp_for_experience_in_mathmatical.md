@@ -1,35 +1,64 @@
 # OpenShift 容器平台上的 Jupyter 笔记本帮助落实数学实验教学  
 
-前些日子, 上初中的女儿让我帮忙在 MatePAD 上调试她的数学老师设计的实验的程序, 很遗憾, 我没找到移动终端上可用的 SciPy<sup>1</sup> 环境, 这个数学实验没能在课上进行.  
+前些日子, 上初中的女儿让我帮忙在 MatePAD 上调试她的数学老师设计的实验的一个程序, 很遗憾, 我没找到移动终端上可用的 SciPy<sup>1</sup> 环境, 这个数学实验没能在课上进行.  
 
 我非常赞赏这个数学实验. 将实验引入数学教学在学界讨论了二十年, 已经达成了共识<sup>2,3,4</sup>, 但在落实的时候, 受到了诸多因素的制约, 毕竟没法安排数学课都在计算机教室上. 那么在移动设备普及的今天, 是否有方案让每个学生在班级教室通过移动设备的浏览器就能进行数学实验呢?  
 
-OpenShift 容器平台<sup>5</sup>上的 Jupyter 笔记本<sup>6</sup>是一个成熟的开源<sup>7</sup>方案. 基于平台的能力, 每个学生用移动设备的浏览器访问校内数学实验系统时, 都会启动一个独立的实验环境的容器, 互不影响, 简单的操作就可以实现动态的可视化; 并且资源占用少, 一台高配的 PC 机就能支持一个班的学生进行实验.  
+有, OpenShift 容器平台<sup>5</sup>上的 Jupyter 笔记本<sup>6</sup>就是一个成熟的开源<sup>7</sup>方案. 基于平台的能力, 每个学生用移动设备的浏览器访问校内数学实验系统时, 都会启动一个独立的实验环境的容器, 互不影响, 简单的操作就可以实现动态的可视化; 并且资源占用少, 一台高配的 PC 机就能支持一个班的学生进行实验.  
 
 下面以使用蒙特·卡罗方法<sup>8</sup>模拟计算圆周率的实验为例, 展示使用 OpenShift 容器平台上的 Jupyter 笔记本进行数学实验的过程. 无论是 iPad 上的 safari 浏览器, 还是 MatePAD 上的 chrome 浏览器, 都能够正常进行实验.  
 
 ## 搭建基于 OpenShift 容器平台上的 Jupyter 笔记本的校内数学实验系统  
 请参考[红帽官网的安装手册](https://access.redhat.com/documentation/zh-cn/openshift_container_platform/4.2/html/installing/index)和众多的博客文章, 如, [OpenShift 4.2 离线安装补充记录](https://www.cnblogs.com/ericnie/p/11764124.html), 进行安装, 4台 PC 机即可搭建一个容器云环境.  
 
-Jupyter 笔记本的镜像, 请参考[jupyter-on-openshift 项目](https://github.com/jupyter-on-openshift/)进行构建.  
+Jupyter 笔记本的镜像, 请参考[jupyter-on-openshift 项目](https://github.com/jupyter-on-openshift/)进行构建, 并导入本地的镜像仓库中, 如, registry.ocp4.example.com:5000/jupyteronopenshift/jupyterhub:latest 和 registry.ocp4.example.com:5000/jupyteronopenshift/s2i-minimal-notebook:latest.  
 > 需要注意的是, 若要 Jupyter 笔记本在页面上实现动态的可视化效果, 则需要在构建镜像时安装 FFmpeg<sup>9</sup> 软件.  
 > 若安装的是高于 OpenShift v4.2 的版本, 直接使用 jupyter-on-openshift 项目提供的镜像, 则会遇到 [kubespawner 的 bug](https://github.com/jupyterhub/kubespawner/issues/354), 需要升级到对应的版本解决, 避免遇到[kubernetes-client 的一个未解决的 bug](https://github.com/kubernetes-client/python/issues/1333).  
 
-在控制台页面创建 JupyterHub 应用模板:  
-![上传 JupyterHub 应用模板]()  
+使用 oc 命令行工具创建项目:  
+```
+oc new-project jupyternotebook
+```
 
-然后通过模板创建 JupyterHub 应用:  
-![输入配置参数, 创建 JupyterHub 应用]()
+使用 oc 命令行工具创建 JupyterHub 应用模板:  
+```
+oc create -f jupyterhub-quickstart/templates/jupyterhub-deployer.json
+```
+
+使用 oc 命令行工具从镜像仓库导入 JupyterHub 和 Jupyter 笔记本的镜像:  
+```
+oc import-image jupyterhub --from=registry.ocp4.example.com:5000/jupyteronopenshift/jupyterhub:latest --confirm=true
+
+oc import-image s2i-minimal-notebook --from=registry.ocp4.example.com:5000/jupyteronopenshift/s2i-minimal-notebook:latest --confirm=true
+```
+
+然后在控制台页面通过模板创建 JupyterHub 应用.  
+先选择 jupyternotebook 项目:  
+![选择项目](./jupyterhub-screenshots/select_jupyternotebook_project.png)
+
+然后点击 From Catalog 去查找可用的应用模板:  
+![从模板创建应用](./jupyterhub-screenshots/create_app_from_catalog.png)
+
+输入 jupyter 关键词, 查询到 JupyterHub 应用模板:  
+![找到应用模板](./jupyterhub-screenshots/seek_template_by_jupyter.png)
+
+通过模板创建 JupyterHub 应用:  
+![通过模板创建应用](./jupyterhub-screenshots/new_app_by_template.png)
+
+输入必要的参数:  
+![输入参数](./jupyterhub-screenshots/parameters_in_template_to_new_jupyterhub_app.png)
 
 至此这个校内数学实验系统已经就绪.  
 ![系统就绪](./jupyterhub-screenshots/application_system_for_math_experience.png)
 
 ## 进行实验  
-用浏览器访问[实验系统的网址](), 系统会自动初始化一个实验环境的 POD:  
+用浏览器访问[实验系统的网址](https://jupyterhub-jupyternotebook.apps.ocp4.example.com), 系统会自动初始化一个实验环境:  
 ![自动启动实验环境](./jupyterhub-screenshots/auto_started_lab_env.png)
+
+从容器平台上看到一个 Jupyter 笔记本的 POD 启动了:  
 ![实验环境就绪](./jupyterhub-screenshots/lab_pod_ready.png)
 
-创建一个 python 笔记本:  
+在 Jupyter 笔记本的页面上创建一个 python 笔记本:  
 ![创建 python 笔记本](./jupyterhub-screenshots/new_python_notebook.png)
 
 按步骤运行实验代码:  
@@ -51,7 +80,18 @@ frame_interval = 40
 # number of samples process per frame
 num_sample_per_frame = 100
 
-#3 定义数据处理的动画的函数
+#3 画坐标和圆形
+fig = plt.figure(figsize=(5, 5), facecolor="white")
+ax = fig.add_subplot()
+# square
+ax.set_aspect('equal')
+ax.set_xlim(0, 1)
+ax.set_ylim(0, 1)
+# round share without fill
+ax.add_artist(plt.Circle((0, 0), 1, color='black', fill=False))
+line, = ax.plot([], [], 'ro')
+
+#4 定义数据处理的动画的函数
 # i is number of frames, process num_sample_per_frame per frame
 def animate(i):
     global inside_count
@@ -70,17 +110,6 @@ def animate(i):
     ax.scatter(*in_xy, c='g', s=4)
     ax.scatter(*out_xy, c='r', s=4)
 
-#4 画坐标和圆形
-fig = plt.figure(figsize=(5, 5), facecolor="white")
-ax = fig.add_subplot()
-# square
-ax.set_aspect('equal')
-ax.set_xlim(0, 1)
-ax.set_ylim(0, 1)
-# round share without fill
-ax.add_artist(plt.Circle((0, 0), 1, color='black', fill=False))
-line, = ax.plot([], [], 'ro')
-
 #5 生成数据样本, 生成动画. 可反复执行, 每次的评估值都有差异.
 # accumulator for points in round shape
 inside_count = 0
@@ -95,8 +124,11 @@ HTML(anim.to_html5_video())
 ```
 ![![动态效果](./jupyterhub-screenshots/Pi_simulated_by_Monte_Carlo_method-axis.png)](./jupyterhub-screenshots/Pi_simulated_by_Monte_Carlo_method.gif)
 
-完成实验后停止实验环境(或者由老师在课后统一清理):  
+完成实验后停止实验环境.  
+点击 Control Panel 进入 Jupyter 笔记本的控制台:  
 ![进入控制面板](./jupyterhub-screenshots/goto-control-panel.png)
+
+点击 Stop My Server 停止自己的实验环境:  
 ![停止实验环境](./jupyterhub-screenshots/shutdown-lab-pod.png)
 
 
