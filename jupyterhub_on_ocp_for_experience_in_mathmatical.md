@@ -4,14 +4,14 @@
 
 我非常赞赏这个数学实验. 将实验引入数学教学在学界讨论了二十年, 已经达成了共识<sup>2,3,4</sup>, 但在落实的时候, 受到了诸多因素的制约, 毕竟没法安排数学课都在计算机教室上. 那么在移动设备普及的今天, 是否有方案让每个学生在班级教室通过移动设备的浏览器就能进行数学实验呢?  
 
-有, OpenShift 容器平台<sup>5</sup>上的 Jupyter 笔记本<sup>6</sup>就是一个成熟的开源<sup>7</sup>方案. 基于平台的能力, 每个学生用移动设备的浏览器访问校内数学实验系统时, 都会启动一个独立的实验环境的容器, 互不影响, 简单的操作就可以实现动态的可视化; 并且资源占用少, 一台高配的 PC 机就能支持一个班的学生进行实验.  
+有, OpenShift 容器平台<sup>5</sup>上的 Jupyter 笔记本<sup>6</sup>就是一个成熟的开源<sup>7</sup>方案. 基于平台的能力, 每个学生用移动设备的浏览器访问校内的数学实验系统时, 都会启动一个独立的实验环境的容器, 互不影响, 简单的操作就可以实现动态的可视化; 并且资源占用少, 一台高配的 PC 机就能支持一个班的学生进行实验.  
 
 下面以使用蒙特·卡罗方法<sup>8</sup>模拟计算圆周率的实验为例, 展示使用 OpenShift 容器平台上的 Jupyter 笔记本进行数学实验的过程. 无论是 iPad 上的 safari 浏览器, 还是 MatePAD 上的 chrome 浏览器, 都能够正常进行实验.  
 
 ## 搭建基于 OpenShift 容器平台上的 Jupyter 笔记本的校内数学实验系统  
 请参考[红帽官网的安装手册](https://access.redhat.com/documentation/zh-cn/openshift_container_platform/4.2/html/installing/index)和众多的博客文章, 如, [OpenShift 4.2 离线安装补充记录](https://www.cnblogs.com/ericnie/p/11764124.html), 进行安装, 4台 PC 机即可搭建一个容器云环境.  
 
-Jupyter 笔记本的镜像, 请参考[jupyter-on-openshift 项目](https://github.com/jupyter-on-openshift/)进行构建, 并导入本地的镜像仓库中, 如, registry.ocp4.example.com:5000/jupyteronopenshift/jupyterhub:latest 和 registry.ocp4.example.com:5000/jupyteronopenshift/s2i-minimal-notebook:latest.  
+Jupyter 笔记本的镜像, 请参考[jupyter-on-openshift 项目](https://github.com/jupyter-on-openshift/)进行构建, 并导入到本地的镜像仓库中, 如, registry.ocp4.example.com:5000/jupyteronopenshift/jupyterhub:latest 和 registry.ocp4.example.com:5000/jupyteronopenshift/s2i-minimal-notebook:latest.  
 > 需要注意的是, 若要 Jupyter 笔记本在页面上实现动态的可视化效果, 则需要在构建镜像时安装 FFmpeg<sup>9</sup> 软件.  
 > 若安装的是高于 OpenShift v4.2 的版本, 直接使用 jupyter-on-openshift 项目提供的镜像, 则会遇到 [kubespawner 的 bug](https://github.com/jupyterhub/kubespawner/issues/354), 需要升级到对应的版本解决, 避免遇到[kubernetes-client 的一个未解决的 bug](https://github.com/kubernetes-client/python/issues/1333).  
 
@@ -32,30 +32,30 @@ oc import-image jupyterhub --from=registry.ocp4.example.com:5000/jupyteronopensh
 oc import-image s2i-minimal-notebook --from=registry.ocp4.example.com:5000/jupyteronopenshift/s2i-minimal-notebook:latest --confirm=true
 ```
 
-然后在控制台页面通过模板创建 JupyterHub 应用.  
+在控制台页面通过模板创建 JupyterHub 应用.  
 先选择 jupyternotebook 项目:  
 ![选择项目](./jupyterhub-screenshots/select_jupyternotebook_project.png)
 
 然后点击 From Catalog 去查找可用的应用模板:  
 ![从模板创建应用](./jupyterhub-screenshots/create_app_from_catalog.png)
 
-输入 jupyter 关键词, 查询到 JupyterHub 应用模板:  
+输入关键词"jupyter", 找到 JupyterHub 应用模板:  
 ![找到应用模板](./jupyterhub-screenshots/seek_template_by_jupyter.png)
 
 通过模板创建 JupyterHub 应用:  
 ![通过模板创建应用](./jupyterhub-screenshots/new_app_by_template.png)
 
-输入必要的参数:  
+输入必要的参数, 并点击 Create 按钮:  
 ![输入参数](./jupyterhub-screenshots/parameters_in_template_to_new_jupyterhub_app.png)
 
-至此这个校内数学实验系统已经就绪.  
+至此这个校内的数学实验系统已经就绪.  
 ![系统就绪](./jupyterhub-screenshots/application_system_for_math_experience.png)
 
 ## 进行实验  
 用浏览器访问[实验系统的网址](https://jupyterhub-jupyternotebook.apps.ocp4.example.com), 系统会自动初始化一个实验环境:  
 ![自动启动实验环境](./jupyterhub-screenshots/auto_started_lab_env.png)
 
-从容器平台上看到一个 Jupyter 笔记本的 POD 启动了:  
+在容器平台的控制台页面上看到一个 Jupyter 笔记本的 POD 启动了:  
 ![实验环境就绪](./jupyterhub-screenshots/lab_pod_ready.png)
 
 在 Jupyter 笔记本的页面上创建一个 python 笔记本:  
@@ -122,6 +122,8 @@ anim = animation.FuncAnimation(fig, animate, frames=num_frames, interval=frame_i
 # to generate animation video, wait for a minute...
 HTML(anim.to_html5_video())
 ```
+
+能够看到动态的效果, 随着样本的不断计算, 圆周率的模拟值在不断变化:  
 ![![动态效果](./jupyterhub-screenshots/Pi_simulated_by_Monte_Carlo_method-axis.png)](./jupyterhub-screenshots/Pi_simulated_by_Monte_Carlo_method.gif)
 
 完成实验后停止实验环境.  
