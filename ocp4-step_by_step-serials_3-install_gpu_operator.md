@@ -1,7 +1,7 @@
 # OpenShift 4 离线环境搭建 - 安装 gpu operator
 
 ## 需要准备的离线安装介质  
-1. OpenShift 4.6 Certified Operators 离线镜像, 包含 Nvidia GPU Operator  
+1. OpenShift 4.6 的 Red Hat Operators 和 Certified Operators 离线镜像, 包含 NFD Operator 和 Nvidia GPU Operator  
 2. 对应 RHCOS 内核版本的 headers/devel 和依赖的 rpm 包等, 如下:  
 ```
 binutils-2.30-93.el8.x86_64.rpm
