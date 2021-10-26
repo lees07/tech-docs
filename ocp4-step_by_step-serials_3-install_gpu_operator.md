@@ -248,7 +248,7 @@ systemctl restart httpd
 cat > local.repo << EOF
 [gpu-dependent]
 name=gpu-dependent
-baseurl=http://10.144.239.11:8080/gpu-ocp-coreos-4.6.42-rpms/
+baseurl=http://10.x.x.x:8080/gpu-ocp-coreos-4.6.42-rpms/
 enabled=1
 gpgcheck=0
 ```
